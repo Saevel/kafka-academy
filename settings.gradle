@@ -1,0 +1,6 @@
+rootProject.name = 'kafa-academy'
+
+include 'low-level-api'
+
+include 'kafka-streams'
+
