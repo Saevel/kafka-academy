@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+group 'org.gdt.big.data.practice'
+version '1.0'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.springframework.kafka', name: 'spring-kafka-test', version: '2.2.8.RELEASE'
+}
+
+
