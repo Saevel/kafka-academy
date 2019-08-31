@@ -24,29 +24,6 @@ public class UserConsumer {
     }
 
     public List<User> consumeUsers(String bootstrapServers, String topic, String groupId, Duration timeout, long maxRecords){
-
-        Map<String, Object> consumerConfigs = new HashMap<>();
-        consumerConfigs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        consumerConfigs.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
-        consumerConfigs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerConfigs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-
-        KafkaConsumer<Long, String> consumer = new KafkaConsumer<>(consumerConfigs);
-        consumer.subscribe(Arrays.asList(topic));
-
-        List<User> users = new LinkedList<>();
-        LocalDateTime startTimestamp = LocalDateTime.now();
-        while(Duration.between(startTimestamp, LocalDateTime.now()).compareTo(timeout) <= 0 && users.size() <= maxRecords){
-            consumer.poll(pollingTimeout).records(topic).forEach(record -> {
-                try {
-                    users.add(mapper.readValue(record.value(), User.class));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-
-        return users;
+        return null;
     }
 }

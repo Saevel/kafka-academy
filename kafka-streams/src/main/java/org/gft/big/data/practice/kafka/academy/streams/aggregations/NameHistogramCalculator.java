@@ -6,8 +6,6 @@ import org.apache.kafka.streams.kstream.KTable;
 public class NameHistogramCalculator {
 
     public KTable<String, Long> calculateNameHistograms(KStream<?, String> users){
-        return users
-                .groupBy((key, value) -> value)
-                .count();
+        return null;
     }
 }

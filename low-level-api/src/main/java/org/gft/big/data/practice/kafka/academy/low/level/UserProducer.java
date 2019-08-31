@@ -27,30 +27,6 @@ public class UserProducer {
     }
 
     public CompletableFuture<?> sendToKafka(String bootstrapServers, String topic, Collection<User> users){
-
-        Map<String, Object> producerSettings = new HashMap<>();
-        producerSettings.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        producerSettings.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
-        producerSettings.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-
-        KafkaProducer<Long, String> producer = new KafkaProducer<>(producerSettings);
-
-        return users.stream()
-                    .map(toProducerRecord(topic))
-                    .map(producer::send)
-                    .map(Futurity::shift)
-                    .reduce((left, right) -> left.thenCompose(any -> right))
-                    .get();
-    }
-
-    private Function<User, ProducerRecord<Long, String>> toProducerRecord(String topic){
-        return user -> {
-            try {
-                return new ProducerRecord<>(topic, user.getId(), objectMapper.writeValueAsString(user));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                return null;
-            }
-        };
+        return null;
     }
 }
