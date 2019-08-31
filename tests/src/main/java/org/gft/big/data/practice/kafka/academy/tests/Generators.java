@@ -70,7 +70,6 @@ public class Generators {
         } else {
             return intGenerator().map(Math::abs).map(i -> i % options.size()).map(options::get);
         }
-
     }
 
     public static final<T> Generator<T> oneOf(T... options){
@@ -79,6 +78,13 @@ public class Generators {
         } else {
             return intGenerator().map(Math::abs).map(i -> i % options.length).map(i -> options[i]);
         }
+    }
 
+    public static final<T> Generator<T> oneOf(Generator<T>... options){
+        if(options.length == 0){
+            throw new IllegalArgumentException("Options cannot be empty");
+        } else {
+            return intGenerator().map(Math::abs).map(i -> i % options.length).map(i -> options[i].sample());
+        }
     }
 }

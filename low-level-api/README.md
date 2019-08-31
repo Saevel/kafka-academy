@@ -1,6 +1,5 @@
 Low Level API
 
-Task 1: Producer API
 
 Go to the "org.gft.big.data.practice.kafka.academy.low.level.UserProducer" class and implement the "produceUsers"
 method to serialize each "User" to JSON (use the ObjectMapper to achieve this), send it to Kafka under the user's "id"

@@ -4,4 +4,5 @@ include 'low-level-api'
 
 include 'kafka-streams'
 include 'tests'
+include 'model'
 

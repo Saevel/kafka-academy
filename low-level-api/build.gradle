@@ -21,6 +21,8 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.28'
     compile group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.28'
     
+    compile project(':model')
+    
     testCompile project(':tests')
 
     testCompile group: 'junit', name: 'junit', version: '4.12'

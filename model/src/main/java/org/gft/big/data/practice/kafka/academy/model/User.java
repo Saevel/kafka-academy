@@ -1,4 +1,4 @@
-package org.gft.big.data.practice.kafka.academy.low.level;
+package org.gft.big.data.practice.kafka.academy.model;
 
 public class User {
 
