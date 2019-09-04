@@ -23,6 +23,6 @@ Task3: Cross Projections
 
 Go to the "org.gft.big.data.practice.kafka.academy.streams.joins.UserMatcher" class and implement the "matchUsers" 
 method so that from the two streams, it calculates all the pairs of users having identical surnames and returns them as 
-a Pair<User, User>. 
+a Stream<User, User>.
 
 Once this is done, run the "UserMatcherTest" to verify the correctness of your implementation.

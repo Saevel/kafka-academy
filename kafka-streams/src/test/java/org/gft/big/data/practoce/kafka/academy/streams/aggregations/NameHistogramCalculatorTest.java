@@ -3,28 +3,23 @@ package org.gft.big.data.practoce.kafka.academy.streams.aggregations;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.TopologyTestDriver;
+import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.gft.big.data.practice.kafka.academy.model.User;
+import org.gft.big.data.practice.kafka.academy.streams.GenericSerde;
 import org.gft.big.data.practice.kafka.academy.streams.aggregations.NameHistogramCalculator;
 import org.gft.big.data.practice.kafka.academy.tests.Generator;
 import org.gft.big.data.practice.kafka.academy.tests.Generators;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NameHistogramCalculatorTest {
 
@@ -51,8 +46,14 @@ public class NameHistogramCalculatorTest {
 
     private NameHistogramCalculator calculator = new NameHistogramCalculator();
 
-    private ConsumerRecordFactory<String, String> recordFactory =
-            new ConsumerRecordFactory<>(inputTopic, new StringSerializer(), new StringSerializer());
+    private GenericSerde<String> stringSerde = new GenericSerde<>();
+
+    private GenericSerde<Long> longSerde = new GenericSerde<>();
+
+    private GenericSerde<User> userSerde = new GenericSerde<>();
+
+    private ConsumerRecordFactory<Long, User> recordFactory =
+            new ConsumerRecordFactory<>(inputTopic, longSerde.serializer(), userSerde.serializer());
 
     @Test
     public void nameHistogramCalculatorTest(){
@@ -62,54 +63,46 @@ public class NameHistogramCalculatorTest {
 
         StreamsBuilder builder = new StreamsBuilder();
 
-        List<KeyValue<String, String>> keyValues = users
+        List<KeyValue> keyValues = users
                 .stream()
-                .map(user -> {
-                    try {
-                        return new KeyValue<String, String>(Long.toString(user.getId()), mapper.writeValueAsString(user));
-                    } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                })
+                .map(user -> new KeyValue(user.getId(), user))
                 .collect(Collectors.toList());
 
+        /*
+         * KLUDGE: Closing the Test Driver doesn't close the state stores properly. Changing applicationId will work
+         * around this, but will bloat your tmp folder, so be sure to delete it after some runs.
+         */
+        Random random = new Random();
         Properties streamsConfig = new Properties();
-        streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "NameHistogramCalculatorTest");
-        streamsConfig.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class.getName());
-        streamsConfig.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class.getName());
+        streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "NameHistogramCalculatorTest" + random.nextInt());
+        streamsConfig.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, GenericSerde.class.getName());
+        streamsConfig.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, GenericSerde.class.getName());
         streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
-        KStream<String, String> initialStream = builder.stream(inputTopic);
-
-        KStream<String, String> userStream = initialStream.mapValues(v -> {
-            try {
-                return mapper.readValue(v, User.class).getName();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-        }});
+        KStream<Long, User> userStream = builder.stream(inputTopic);
 
         calculator.calculateNameHistograms(userStream)
-                .mapValues(l -> Long.toString(l))
                 .toStream()
                 .to(outputTopic);
 
         TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsConfig);
 
-        for(KeyValue<String, String> keyValue : keyValues) {
+        for(KeyValue<Long, User> keyValue : keyValues) {
             testDriver.pipeInput(recordFactory.create(inputTopic, keyValue.key, keyValue.value));
         }
 
-        ProducerRecord<String, String> output = null;
+        ProducerRecord<String, Long> output;
         do {
-            output = testDriver.readOutput(outputTopic, new StringDeserializer(), new StringDeserializer());
+            output = testDriver.readOutput(outputTopic, stringSerde.deserializer(), longSerde.deserializer());
             if(output != null) {
-                Assert.assertTrue("The histogram values do not agree", (long)expectedHistograms.get(output.key()) >= Long.parseLong(output.value()));
+                long expectedValue = expectedHistograms.get(output.key());
+                long actualValue = output.value();
+                Assert.assertTrue(
+                        "The histogram values do not agree. Expected maximal value: " + expectedValue + ". Actual value: " + actualValue,
+                        actualValue <= expectedValue
+                );
             }
         } while (output != null);
-
-        testDriver.close();
     }
 
     private Map<String, Long> calculateHistograms(List<User> users){
