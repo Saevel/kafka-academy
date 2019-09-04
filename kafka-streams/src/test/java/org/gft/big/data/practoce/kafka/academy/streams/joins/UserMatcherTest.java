@@ -1,28 +1,22 @@
 package org.gft.big.data.practoce.kafka.academy.streams.joins;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.gft.big.data.practice.kafka.academy.model.User;
-import org.gft.big.data.practice.kafka.academy.streams.aggregations.NameHistogramCalculator;
+import org.gft.big.data.practice.kafka.academy.streams.GenericSerde;
 import org.gft.big.data.practice.kafka.academy.streams.joins.UserMatcher;
 import org.gft.big.data.practice.kafka.academy.tests.Generator;
 import org.gft.big.data.practice.kafka.academy.tests.Generators;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class UserMatcherTest {
@@ -46,66 +40,57 @@ public class UserMatcherTest {
     private Generator<List<User>> usersGenerator =
             Generators.streamOf(userGenerator).map(stream -> stream.limit(50).collect(Collectors.toList()));
 
-    private ObjectMapper mapper = new ObjectMapper();
-
     private UserMatcher matcher = new UserMatcher();
 
-    private ConsumerRecordFactory<String, String> recordFactory =
-            new ConsumerRecordFactory<>(inputTopic, new StringSerializer(), new StringSerializer());
+    private GenericSerde<Long> longSerde = new GenericSerde<>();
+
+    private GenericSerde<User> userSerde = new GenericSerde<>();
+
+    private ConsumerRecordFactory<Long, User> recordFactory =
+            new ConsumerRecordFactory<>(inputTopic, longSerde.serializer(), userSerde.serializer());
 
     @Test
-    public void testUserMatcher() throws IOException {
+    public void testUserMatcher() {
 
         List<User> users = usersGenerator.sample();
 
         StreamsBuilder builder = new StreamsBuilder();
 
+        /*
+         * KLUDGE: Closing the Test Driver doesn't close the state stores properly. Changing applicationId will work
+         * around this, but will bloat your tmp folder, so be sure to delete it after some runs.
+         */
+        Random random = new Random();
         Properties streamsConfig = new Properties();
-        streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "NameHistogramCalculatorTest");
-        streamsConfig.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class.getName());
-        streamsConfig.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class.getName());
+        streamsConfig.put(StreamsConfig.APPLICATION_ID_CONFIG, "NameHistogramCalculatorTest" + random.nextInt());
+        streamsConfig.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, GenericSerde.class.getName());
+        streamsConfig.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, GenericSerde.class.getName());
         streamsConfig.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
-        KStream<String, String> initialStream = builder.stream(inputTopic);
-
-        KStream<String, User> userStream = initialStream.mapValues(value -> {
-            try {
-                return mapper.readValue(value, User.class);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
-        });
+        KStream<Long, User> userStream = builder.stream(inputTopic);
 
         matcher.matchUsers(userStream, userStream, 10 * 1000)
-                .mapValues(pair -> pair.toString())
                 .to(outputTopic);
 
         TopologyTestDriver testDriver = new TopologyTestDriver(builder.build(), streamsConfig);
 
         for(User user : users) {
-            try {
-                testDriver.pipeInput(recordFactory.create(inputTopic, Long.toString(user.getId()), mapper.writeValueAsString(user)));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+            testDriver.pipeInput(recordFactory.create(inputTopic, user.getId(), user));
         }
 
-        ProducerRecord<String, String> output = null;
+        ProducerRecord<User, User> output;
         do {
-            output = testDriver.readOutput(outputTopic, new StringDeserializer(), new StringDeserializer());
+            output = testDriver.readOutput(outputTopic, userSerde.deserializer(), userSerde.deserializer());
             if(output != null) {
-                String[] outputData = output.value().replaceAll("\\(", "").replaceAll("\\)", "").split(", ");
-                Assert.assertTrue(outputData.length == 2);
 
-                User first = mapper.readValue(outputData[0], User.class);
-                User second = mapper.readValue(outputData[1], User.class);
+                User first = output.key();
+                User second = output.value();
 
-                Assert.assertTrue(first.getName() == second.getName());
-
+                Assert.assertTrue(
+                        "Users do not match by surname. First user: " + first +  ". Second user: " + second,
+                        first.getSurname().equals(second.getSurname())
+                );
             }
         } while (output != null);
-
-        testDriver.close();
     }
 }

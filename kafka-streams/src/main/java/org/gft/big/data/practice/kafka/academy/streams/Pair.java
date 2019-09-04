@@ -1,10 +1,16 @@
 package org.gft.big.data.practice.kafka.academy.streams;
 
-public class Pair<K, V> {
+import java.io.Serializable;
+
+public class Pair<K, V> implements Serializable {
 
     private K key;
 
     private V value;
+
+    public Pair(){
+        ;
+    }
 
     public Pair(K key, V value) {
         this.key = key;

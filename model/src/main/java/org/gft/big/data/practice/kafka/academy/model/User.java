@@ -1,6 +1,8 @@
 package org.gft.big.data.practice.kafka.academy.model;
 
-public class User {
+import java.io.Serializable;
+
+public class User implements Serializable {
 
     private long id;
 
