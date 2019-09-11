@@ -1,4 +1,4 @@
-package org.gft.big.data.practoce.kafka.academy.streams.transformations;
+package org.gft.big.data.practice.kafka.academy.streams.transformations;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,7 +8,6 @@ import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.gft.big.data.practice.kafka.academy.model.User;
-import org.gft.big.data.practice.kafka.academy.streams.transformations.UserNamesTransformer;
 import org.gft.big.data.practice.kafka.academy.tests.Generator;
 import org.gft.big.data.practice.kafka.academy.tests.Generators;
 import org.junit.Assert;

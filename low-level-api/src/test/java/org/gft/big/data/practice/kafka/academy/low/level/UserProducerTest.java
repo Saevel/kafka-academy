@@ -1,9 +1,7 @@
 package org.gft.big.data.practice.kafka.academy.low.level;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -28,7 +26,7 @@ import static org.hamcrest.MatcherAssert.*;
 
 public class UserProducerTest {
 
-    protected Duration totalTimeout = Duration.ofMinutes(3);
+    private Duration totalTimeout = Duration.ofMinutes(3);
 
     private static final String topicName = "TestTopic";
 
