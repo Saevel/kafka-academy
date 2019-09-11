@@ -1,0 +1,15 @@
+*.iml
+*.ipr
+*.iws
+.DS_Store
+.cache
+.classpath
+.gradle/
+.idea/
+.idea_modules/
+.project
+target/
+kafka-streams/out/
+low-level-api/out/
+model/out/
+tests/out/

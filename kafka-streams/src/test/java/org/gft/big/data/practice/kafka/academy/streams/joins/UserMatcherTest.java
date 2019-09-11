@@ -1,4 +1,4 @@
-package org.gft.big.data.practoce.kafka.academy.streams.joins;
+package org.gft.big.data.practice.kafka.academy.streams.joins;
 
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -8,7 +8,6 @@ import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.gft.big.data.practice.kafka.academy.model.User;
 import org.gft.big.data.practice.kafka.academy.streams.GenericSerde;
-import org.gft.big.data.practice.kafka.academy.streams.joins.UserMatcher;
 import org.gft.big.data.practice.kafka.academy.tests.Generator;
 import org.gft.big.data.practice.kafka.academy.tests.Generators;
 import org.junit.Assert;
@@ -86,10 +85,8 @@ public class UserMatcherTest {
                 User first = output.key();
                 User second = output.value();
 
-                Assert.assertTrue(
-                        "Users do not match by surname. First user: " + first +  ". Second user: " + second,
-                        first.getSurname().equals(second.getSurname())
-                );
+                Assert.assertEquals("Users do not match by surname. First user: " + first + ". Second user: " + second,
+                    first.getSurname(), second.getSurname());
             }
         } while (output != null);
     }
