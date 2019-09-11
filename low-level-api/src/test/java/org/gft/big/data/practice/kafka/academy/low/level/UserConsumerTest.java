@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 
 public class UserConsumerTest {
 
-    protected Duration totalTimeout = Duration.ofMinutes(3);
+    private Duration totalTimeout = Duration.ofMinutes(3);
 
     private static final String topicName = "TestTopic";
 

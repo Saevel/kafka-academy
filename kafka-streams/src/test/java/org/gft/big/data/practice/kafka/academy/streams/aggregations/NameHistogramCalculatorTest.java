@@ -1,25 +1,18 @@
-package org.gft.big.data.practoce.kafka.academy.streams.aggregations;
+package org.gft.big.data.practice.kafka.academy.streams.aggregations;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.streams.*;
 import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.test.ConsumerRecordFactory;
 import org.gft.big.data.practice.kafka.academy.model.User;
 import org.gft.big.data.practice.kafka.academy.streams.GenericSerde;
-import org.gft.big.data.practice.kafka.academy.streams.aggregations.NameHistogramCalculator;
 import org.gft.big.data.practice.kafka.academy.tests.Generator;
 import org.gft.big.data.practice.kafka.academy.tests.Generators;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class NameHistogramCalculatorTest {
 
@@ -42,8 +35,6 @@ public class NameHistogramCalculatorTest {
     private Generator<List<User>> usersGenerator =
             Generators.streamOf(userGenerator).map(stream -> stream.limit(10).collect(Collectors.toList()));
 
-    private ObjectMapper mapper = new ObjectMapper();
-
     private NameHistogramCalculator calculator = new NameHistogramCalculator();
 
     private GenericSerde<String> stringSerde = new GenericSerde<>();
@@ -63,9 +54,9 @@ public class NameHistogramCalculatorTest {
 
         StreamsBuilder builder = new StreamsBuilder();
 
-        List<KeyValue> keyValues = users
+        List<KeyValue<Long, User>> keyValues = users
                 .stream()
-                .map(user -> new KeyValue(user.getId(), user))
+                .map(user -> new KeyValue<>(user.getId(), user))
                 .collect(Collectors.toList());
 
         /*
@@ -108,6 +99,6 @@ public class NameHistogramCalculatorTest {
     private Map<String, Long> calculateHistograms(List<User> users){
         return users
                 .stream()
-                .collect(Collectors.toMap((user) -> user.getName(), (user) -> 1L, (i, j) -> i + j, () -> new HashMap<>()));
+                .collect(Collectors.toMap(User::getName, (user) -> 1L, (i, j) -> i + j, HashMap::new));
     }
 }
