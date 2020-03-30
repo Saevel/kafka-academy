@@ -66,7 +66,7 @@ public class UserProducerTest {
 
         KafkaConsumer<Long, String> consumer = new KafkaConsumer<>(consumerConfigs);
 
-        producer.sendToKafka(rule.getEmbeddedKafka().getBrokersAsString(), topicName, users)
+        producer.produceUsers(rule.getEmbeddedKafka().getBrokersAsString(), topicName, users)
                 .get(totalTimeout.toMinutes(), TimeUnit.MINUTES);
 
 
