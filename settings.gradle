@@ -1,8 +1,8 @@
 rootProject.name = 'kafa-academy'
 
 include 'low-level-api'
+include 'low-level-api-python'
 
 include 'kafka-streams'
 include 'tests'
 include 'model'
-
