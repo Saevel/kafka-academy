@@ -16,7 +16,7 @@ def test_properly_producing_users():
     conf = {
         'bootstrap.servers': kafka_bootstrap_servers,
         'client.id': socket.gethostname(),
-        'auto.offset.reset': "smallest",
+        'auto.offset.reset': "earliest",
         "group.id": "fgfvsafgsfg"
     }
 
@@ -31,17 +31,16 @@ def test_properly_producing_users():
     actual_results = []
 
     producer = UserProducer()
-
-    producer.produce(kafka_bootstrap_servers, expected_data)
+    producer.produce(kafka_bootstrap_servers, "users-producer", expected_data)
 
     start_time = time.time()
-
     try:
         consumer.subscribe(["users-producer"])
 
-        while (len(actual_results) < len(expected_data)) and ((time.time() - start_time) < 1.0) :
+        while (len(actual_results) < len(expected_data)) and ((time.time() - start_time) < 10.0) :
             msg = consumer.poll(timeout = 1.0)
-            if msg is None: continue
+            if msg is None:
+                continue
 
             if msg.error():
                 if msg.error().code() == KafkaError._PARTITION_EOF:
@@ -51,7 +50,9 @@ def test_properly_producing_users():
                 elif msg.error():
                     raise KafkaException(msg.error())
             else:
-                actual_results.append(json.loads(msg))
+                actual_results.append(json.loads(msg.value().decode('utf8').replace("'", '"')))
+    except Exception as e:
+        print("Error occurred: " + str(e))
     finally:
         consumer.close()
 

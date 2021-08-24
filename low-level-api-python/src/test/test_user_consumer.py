@@ -23,12 +23,12 @@ def test_properly_consuming_users():
 
     producer = Producer(conf)
 
-    for i in expected_data:
-        producer.produce("users", key="key", value=str(expected_data))
+    for item in expected_data:
+        producer.produce("users-consumer", key="key", value=str(item))
         producer.flush()
 
     user_consumer = UserConsumer()
-    actual_users = user_consumer.consume(kafka_bootstrap_servers, "users-consumer", 100, len(expected_data), 60*1000)
+    actual_users = user_consumer.consume(kafka_bootstrap_servers, "users-consumer", 1.0, len(expected_data), 10.0)
 
     print("Actual data: " + str(actual_users))
 
