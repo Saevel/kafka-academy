@@ -12,7 +12,9 @@ class UserConsumer:
             'bootstrap.servers': bootstrap_servers,
             'client.id': socket.gethostname(),
             'auto.offset.reset': "earliest",
-            "group.id": "dsfaggrgg"
+            "group.id": "dsfaggrgg",
+            # For new versions of Mac OS to avoid the IPV6 death trap
+            "broker.address.family": "v4"
         }
 
         print("Kafka config: " + str(conf))

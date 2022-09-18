@@ -17,7 +17,9 @@ def test_properly_producing_users():
         'bootstrap.servers': kafka_bootstrap_servers,
         'client.id': socket.gethostname(),
         'auto.offset.reset': "earliest",
-        "group.id": "fgfvsafgsfg"
+        "group.id": "fgfvsafgsfg",
+        # For new versions of Mac OS to avoid the IPV6 death trap
+        "broker.address.family": "v4"
     }
 
     print("Kafka config: " + str(conf))

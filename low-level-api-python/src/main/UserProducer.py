@@ -9,7 +9,9 @@ class UserProducer:
 
         conf = {
             'bootstrap.servers': bootstrap_servers,
-            'client.id': socket.gethostname()
+            'client.id': socket.gethostname(),
+            # For new versions of Mac OS to avoid the IPV6 death trap
+            'broker.address.family': "v4"
         }
 
         producer = Producer(conf)
