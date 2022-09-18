@@ -18,17 +18,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * Go to the org.gft.big.data.practice.kafka.academy.low.level.UserProducer class and
- * implement the produceUsers method.
- *
- * To serialize each User to JSON (use the ObjectMapper to achieve this),
- * Send it to Kafka under the user's id and return a single CompletableFuture which finishes
- * if / when all the user records are sent to Kafka,
- *
- * Use the Futurity.shift method to transform a simple Java Future to a CompletableFuture
- * Once implemented, run the UserProducerTest to check the correctness of your implementation.
- */
 public class UserProducer {
 
     private ObjectMapper objectMapper;
@@ -37,7 +26,31 @@ public class UserProducer {
         this.objectMapper = objectMapper;
     }
 
-    public CompletableFuture<?> produceUsers(String bootstrapServers, String topic, Collection<User> users){
-        return null;
+    public CompletableFuture<?> sendToKafka(String bootstrapServers, String topic, Collection<User> users){
+
+        Map<String, Object> producerSettings = new HashMap<>();
+        producerSettings.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        producerSettings.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
+        producerSettings.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+
+        KafkaProducer<Long, String> producer = new KafkaProducer<>(producerSettings);
+
+        return users.stream()
+                .map(toProducerRecord(topic))
+                .map(producer::send)
+                .map(Futurity::shift)
+                .reduce((left, right) -> left.thenCompose(any -> right))
+                .get();
+    }
+
+    private Function<User, ProducerRecord<Long, String>> toProducerRecord(String topic){
+        return user -> {
+            try {
+                return new ProducerRecord<>(topic, user.getId(), objectMapper.writeValueAsString(user));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return null;
+            }
+        };
     }
 }

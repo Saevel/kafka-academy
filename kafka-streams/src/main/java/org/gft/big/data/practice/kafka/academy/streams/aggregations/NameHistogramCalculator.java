@@ -13,6 +13,8 @@ import org.gft.big.data.practice.kafka.academy.model.User;
 public class NameHistogramCalculator {
 
     public KTable<String, Long> calculateNameHistograms(KStream<?, User> users){
-        return null;
+        return users
+                .groupBy((key, value) -> value.getName())
+                .count();
     }
 }

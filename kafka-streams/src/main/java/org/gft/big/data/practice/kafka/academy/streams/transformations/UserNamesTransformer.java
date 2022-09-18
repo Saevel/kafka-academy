@@ -12,6 +12,8 @@ import org.gft.big.data.practice.kafka.academy.model.User;
 public class UserNamesTransformer {
 
     public KStream<?, String> transform(KStream<?, User> usersStream){
-        return null;
+        return usersStream
+                .filter((any, user) -> user.getName().startsWith("A") && user.getAge() >= 18)
+                .mapValues(user -> user.getName() + " " + user.getSurname());
     }
 }
