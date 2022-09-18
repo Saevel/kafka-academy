@@ -14,20 +14,20 @@ def kafkaSimulation = new KafkaTestSimulation();
 def bootstrapServers = java.util.Optional.empty();
 
 task createVirtualEnvironment(type: Exec){
-    workingDir "./scripts"
+    workingDir(project.projectDir.toString() + File.separator + "scripts")
     if(OperatingSystem.current().isWindows()){
         commandLine 'cmd', '/c', 'setup.bat'
     } else {
-        commandLine 'sh', '-c', 'setup.sh'
+        commandLine 'sh', '-c', './setup.sh'
     }
 }
 
 task removeVirtualEnvironment(type: Exec){
-    workingDir "./scripts"
+    workingDir(project.projectDir.toString() + File.separator + "scripts")
     if(OperatingSystem.current().isWindows()){
         commandLine 'cmd', '/c', 'cleanup.bat'
     } else {
-        commandLine 'sh', '-c', 'cleanup.sh'
+        commandLine 'bash', '-c', './cleanup.sh'
     }
 }
 
@@ -42,10 +42,10 @@ task execPyTest() {
         exec {
             environment "kafka.bootstrap.servers", bootstrapServers.get()
             if(OperatingSystem.current().isWindows()){
-                executable = "python"
+                executable = project.projectDir.toString() + File.separator + "venv" + File.separator + "Scripts" + File.separator + "python.bat"
                 args = ["-m", "pytest", "-s"]
             } else {
-                executable = "python"
+                executable = project.projectDir.toString() + File.separator + "venv" + File.separator + "bin" + File.separator + "python"
                 args = ["-m", "pytest", "-s"]
             }
         }
@@ -58,7 +58,7 @@ task stopKafka {
     }
 }
 
-task testAll
+task testAll {}
 
 startKafka.dependsOn(createVirtualEnvironment)
 execPyTest.dependsOn(startKafka)
