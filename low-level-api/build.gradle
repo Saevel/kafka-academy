@@ -2,9 +2,11 @@ plugins {
     id 'java'
 }
 
-group 'org.gdt.big.data.practice'
+group 'prv.saevel'
 
 version '1.0'
+
+import prv.saevel.kafka.academy.KafkaTestSimulation;
 
 sourceCompatibility = 1.8
 

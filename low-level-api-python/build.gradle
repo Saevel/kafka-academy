@@ -1,0 +1,65 @@
+group 'prv.saevel'
+
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+import prv.saevel.kafka.academy.KafkaTestSimulation;
+import java.util.Arrays;
+import org.gradle.internal.os.OperatingSystem;
+
+def kafkaSimulation = new KafkaTestSimulation();
+def bootstrapServers = java.util.Optional.empty();
+
+task createVirtualEnvironment(type: Exec){
+    workingDir(project.projectDir.toString() + File.separator + "scripts")
+    if(OperatingSystem.current().isWindows()){
+        commandLine 'cmd', '/c', 'setup.bat'
+    } else {
+        commandLine 'sh', '-c', './setup.sh'
+    }
+}
+
+task removeVirtualEnvironment(type: Exec){
+    workingDir(project.projectDir.toString() + File.separator + "scripts")
+    if(OperatingSystem.current().isWindows()){
+        commandLine 'cmd', '/c', 'cleanup.bat'
+    } else {
+        commandLine 'bash', '-c', './cleanup.sh'
+    }
+}
+
+task startKafka {
+    doLast {
+        bootstrapServers = kafkaSimulation.start(1, Arrays.asList("users-producer", "users-consumer"));
+    }
+}
+
+task execPyTest() {
+    doLast {
+        exec {
+            environment "kafka.bootstrap.servers", bootstrapServers.get()
+            if(OperatingSystem.current().isWindows()){
+                executable = project.projectDir.toString() + File.separator + "venv" + File.separator + "Scripts" + File.separator + "python.bat"
+                args = ["-m", "pytest", "-s"]
+            } else {
+                executable = project.projectDir.toString() + File.separator + "venv" + File.separator + "bin" + File.separator + "python"
+                args = ["-m", "pytest", "-s"]
+            }
+        }
+    }
+}
+
+task stopKafka {
+    doLast {
+        kafkaSimulation.stop();
+    }
+}
+
+task testAll {}
+
+startKafka.dependsOn(createVirtualEnvironment)
+execPyTest.dependsOn(startKafka)
+testAll.dependsOn(execPyTest, stopKafka)

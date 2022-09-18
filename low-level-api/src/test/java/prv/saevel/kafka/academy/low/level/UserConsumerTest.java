@@ -1,4 +1,4 @@
-package org.gft.big.data.practice.kafka.academy.low.level;
+package prv.saevel.kafka.academy.low.level;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,6 +13,8 @@ import org.gft.big.data.practice.kafka.academy.tests.Generator;
 import org.gft.big.data.practice.kafka.academy.tests.Generators;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 
 import java.time.Duration;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 
+@RunWith(JUnit4.class)
 public class UserConsumerTest {
 
     private Duration totalTimeout = Duration.ofMinutes(3);
@@ -34,7 +37,6 @@ public class UserConsumerTest {
     private static final String topicName = "TestTopic";
 
     private String consumerGroup = "sample";
-
     @ClassRule
     public static EmbeddedKafkaRule rule = new EmbeddedKafkaRule(1, false, topicName);
 
@@ -64,6 +66,7 @@ public class UserConsumerTest {
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, rule.getEmbeddedKafka().getBrokersAsString());
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        configs.put("broker.address.family", "v4");
 
         KafkaProducer<Long, String> producer = new KafkaProducer<>(configs);
 

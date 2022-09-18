@@ -1,4 +1,4 @@
-package org.gft.big.data.practice.kafka.academy.low.level;
+package prv.saevel.kafka.academy.low.level;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -10,6 +10,8 @@ import org.gft.big.data.practice.kafka.academy.tests.Generator;
 import org.gft.big.data.practice.kafka.academy.tests.Generators;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 
@@ -21,9 +23,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
+@RunWith(JUnit4.class)
 public class UserProducerTest {
 
     private Duration totalTimeout = Duration.ofMinutes(3);
@@ -62,13 +65,13 @@ public class UserProducerTest {
         consumerConfigs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerConfigs.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerConfigs.put(ConsumerConfig.GROUP_ID_CONFIG, consumerGroup);
+        consumerConfigs.put("broker.address.family", "v4");
 
 
         KafkaConsumer<Long, String> consumer = new KafkaConsumer<>(consumerConfigs);
 
         producer.sendToKafka(rule.getEmbeddedKafka().getBrokersAsString(), topicName, users)
                 .get(totalTimeout.toMinutes(), TimeUnit.MINUTES);
-
 
         rule.getEmbeddedKafka().consumeFromAllEmbeddedTopics(consumer);
 

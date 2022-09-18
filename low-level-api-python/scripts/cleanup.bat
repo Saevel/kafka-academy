@@ -1,0 +1,1 @@
+rmdir ..\venv /s /q

@@ -2,7 +2,7 @@ plugins {
     id 'java'
 }
 
-group 'org.gdt.big.data.practice'
+group 'prv.saevel'
 version '1.0'
 
 sourceCompatibility = 1.8

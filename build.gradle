@@ -1,3 +1,36 @@
-group 'org.gdt.big.data.practice'
+group 'prv.saevel'
 
 version '1.0'
+
+import prv.saevel.kafka.academy.KafkaTestSimulation;
+
+def kafkaSimulation = new KafkaTestSimulation();
+
+task startKafka {
+    doLast {
+        def bootstrapServers = kafkaSimulation.start(1, Arrays.asList("test-topic"));
+        project.ext.set("kafka.bootstrap.servers", bootstrapServers);
+    }
+}
+
+task runPython {
+    doLast {
+        logger.info("Kafka bootstrap servers: " + project.ext.get("kafka.bootstrap.servers"));
+    }
+}
+
+task stopKafka {
+    doLast {
+        kafkaSimulation.stop();
+    }
+}
+
+task testAll {
+    doLast {
+        logger.info("Test All")
+    }
+}
+
+runPython.dependsOn(startKafka)
+stopKafka.dependsOn(runPython)
+testAll.dependsOn(stopKafka)

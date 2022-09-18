@@ -13,3 +13,10 @@ kafka-streams/out/
 low-level-api/out/
 model/out/
 tests/out/
+
+buildSrc/build/
+low-level-api-python/src/__pycache__
+low-level-api-python/src/main/__pycache__/
+low-level-api-python/src/test/__pycache__/**
+
+

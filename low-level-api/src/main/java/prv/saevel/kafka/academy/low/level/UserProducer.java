@@ -1,4 +1,4 @@
-package org.gft.big.data.practice.kafka.academy.low.level;
+package prv.saevel.kafka.academy.low.level;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,11 +36,11 @@ public class UserProducer {
         KafkaProducer<Long, String> producer = new KafkaProducer<>(producerSettings);
 
         return users.stream()
-                    .map(toProducerRecord(topic))
-                    .map(producer::send)
-                    .map(Futurity::shift)
-                    .reduce((left, right) -> left.thenCompose(any -> right))
-                    .get();
+                .map(toProducerRecord(topic))
+                .map(producer::send)
+                .map(Futurity::shift)
+                .reduce((left, right) -> left.thenCompose(any -> right))
+                .get();
     }
 
     private Function<User, ProducerRecord<Long, String>> toProducerRecord(String topic){
